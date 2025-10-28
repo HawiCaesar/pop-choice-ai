@@ -1,15 +1,18 @@
 {
   "name": "Scrim-s05qo7r",
   "description": "https://scrimba.com/the-ai-engineer-path-c02v/~023",
+  "type": "module",
   "scripts": {
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "embeddings": "node embeddings.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.38.2",
+    "@supabase/supabase-js": "2.76.1",
     "@vitejs/plugin-react": "^5.1.0",
+    "dotenv": "^17.2.3",
     "openai": "4.12.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
