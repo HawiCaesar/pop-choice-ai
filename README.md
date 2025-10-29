@@ -10,12 +10,12 @@ npm start
 
 
 ### Main requirements 
-- Built from scratch 
-- Followed figma design (more mobile friendly) 
+- Built from scratch ✅
+- Followed figma design (more mobile friendly) ✅
 - Make sure to
-    - Use a vector database to embedding
-    - Use OpenAI API
-    - use the movies array in content.js
+    - Use a vector database to embedding ✅ (used Cloudflare workers to call the supabase DB)
+    - Use OpenAI API ✅ (used Cloudflare workers to call the OpenAI API)
+    - use the movies array in content.js ✅
 - Use any framework or library (I used React) ✅
 
 ### Stetch goals

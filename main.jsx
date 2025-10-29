@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { openai, supabase } from './config.js';
 import logo from './assets/pop-choice.png';
 
 export const App = () => {
@@ -8,71 +7,9 @@ export const App = () => {
   const [aiRecommendation, setAiRecommendation] = useState({
     title: null,
     releaseYear: null,
-    content: null
+    content: null,
+    noMatchFromLLM: false
   });
-
-  const performSemanticSearch = async (userResponses) => {
-    let embedding;
-    try {
-      const embeddingResponse = await openai.embeddings.create({
-        model: 'text-embedding-3-small',
-        input: userResponses,
-        encoding_format: 'float'
-      });
-      embedding = embeddingResponse.data[0].embedding;
-      console.log(embedding);
-    } catch (error) {
-      console.error('Error creating embeddings for query:', error);
-    }
-
-    try {
-      const { error, data } = await supabase.rpc('match_popchoice', {
-        query_embedding: embedding,
-        match_threshold: 0.02, // low threshold for more matches
-        match_count: 1 // only return 1 match as per core requirements
-      });
-
-      if (error) {
-        console.error('Error matching documents:', error);
-        throw error;
-      }
-      return data;
-    } catch (error) {
-      console.error('Error matching documents:', error);
-      throw error;
-    }
-  };
-
-  const useAILanguageModel = async (
-    embeddingResponse,
-    queryAndResponsesStringified
-  ) => {
-    try {
-      const response = await openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert movie buff and a recommendation buddy who enjoys helping people find movies that match their preferences. 
-            You will be given 3 questions from the user and their answers. 
-            You will also be given a movie the most aligns to their preference based on their answers.
-            Your main job is to formulate a short answer to the questios using the provided questions and answers and the movie recommendation and more details about the movie. 
-            If you are unsure and cannot find the users answers or have no movie recommendation or more details about the movie, say, "Sorry, I don't know a movie at the moment. Lets have another go with the questions from the previous section
-            ." Please do not make up the answer. Also dont repeat the users answers.
-            `
-          },
-          {
-            role: 'user',
-            content: `Questions and Answers: ${queryAndResponsesStringified}\n Movie Recommendation: ${embeddingResponse.title} ${embeddingResponse.releaseYear} ${embeddingResponse.content}`
-          }
-        ]
-      });
-      return response.choices[0].message.content;
-    } catch (error) {
-      console.error('Error using AI language model:', error);
-      return null;
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,19 +25,35 @@ export const App = () => {
       )
       .join('\n\n');
 
-    const results = await performSemanticSearch(userResponses);
-    const aiResponse = await useAILanguageModel(
-      results[0],
-      stringifiedQueryAndResponses
-    );
-    console.log(results[0]);
-    setShowAiRecommendation(true);
-    setAiRecommendation({
-      title: results[0].title,
-      releaseYear: results[0].releaseyear,
-      content: aiResponse
-    });
-    setUsingAI(false);
+    try {
+      const response = await fetch(
+        'https://pop-choice-worker.hawitrial.workers.dev/',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            questionsAndAnswersString: stringifiedQueryAndResponses,
+            userResponses: userResponses
+          })
+        }
+      );
+      const data = await response.json();
+
+
+      console.log(data);
+
+      setShowAiRecommendation(true);
+      setAiRecommendation({
+        title: data.title,
+        releaseYear: data.releaseYear,
+        content: data.content,
+        noMatchFromLLM: data.noMatchFromLLM
+      });
+      setUsingAI(false);
+    } catch (error) {
+      console.error('Error fetching data from API:', error);
+      setUsingAI(false);
+      throw error;
+    }
   };
 
   const handleGoAgain = () => {
@@ -109,7 +62,8 @@ export const App = () => {
     setAiRecommendation({
       title: null,
       releaseYear: null,
-      content: null
+      content: null,
+      noMatchFromLLM: false
     });
   };
 
@@ -131,10 +85,20 @@ export const App = () => {
       <div className='mt-2 p-8'>
         {showAiRecommendation ? (
           <div className='mx-auto mb-8'>
-            <p className='text-[30px] font-bold text-center'>{aiRecommendation.title} ({aiRecommendation.releaseYear})</p>
-            <p className='pb-2 text-base context-question'>
-              {aiRecommendation.content}
-            </p>
+            {aiRecommendation.noMatchFromLLM ? (
+              <p className='text-[30px] font-bold text-center'>
+              Sorry, I don't know any movie based on your preferences. Click the button below to try again.
+              </p>
+            ) : (
+              <>
+                <p className='text-[30px] mb-6 font-bold text-center'>
+                  {aiRecommendation.title} ({aiRecommendation.releaseYear})
+                </p>
+                <p className='pb-2 text-base context-question'>
+                  {aiRecommendation.content}
+                </p>
+              </>
+            )}
             <button
               type='button'
               className='bg-[#51E08A] text-black px-4 py-2 mt-16 rounded-md w-full text-[30px] submit-button'
