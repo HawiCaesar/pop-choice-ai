@@ -8,6 +8,14 @@ npm install
 npm start
 ```
 
+## How to test the app.
+- For Main requirements, look at content.js.
+- Open the app and follow the questions and see if you get a movie from content.js
+
+- For stretch goals, look at movies.txt
+- (To be filled in, I'm working on it)
+
+
 
 ### Main requirements 
 - Built from scratch ✅
