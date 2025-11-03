@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import logo from './assets/pop-choice.png';
+import { Questions } from './Questions';
 
 export const App = () => {
   const [usingAI, setUsingAI] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [collectedResponses, setCollectedResponses] = useState({});
+  const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
+  const [currentPerson, setCurrentPerson] = useState(1);
   const [showAiRecommendation, setShowAiRecommendation] = useState(false);
   const [aiRecommendation, setAiRecommendation] = useState({
     title: null,
@@ -11,49 +16,72 @@ export const App = () => {
     noMatchFromLLM: false
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleFinalMovieSelectionSubmit = async (e) => {
     setUsingAI(true);
+
     const formData = new FormData(e.target);
     const userQueryResponses = Object.fromEntries(formData);
+    
 
-    const userResponses = Object.values(userQueryResponses).join(', ');
-    const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
+     const userResponses = Object.values(userQueryResponses).join(', ');
+     const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
       .map(
         ([key, value], index) =>
           `Question ${index + 1}: ${key}\nAnswer: ${value}`
       )
       .join('\n\n');
+    
+      console.log(userResponses);
+      console.log(stringifiedQueryAndResponses);
 
-    try {
-      const response = await fetch(
-        'https://pop-choice-worker.hawitrial.workers.dev/',
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            questionsAndAnswersString: stringifiedQueryAndResponses,
-            userResponses: userResponses
-          })
-        }
-      );
-      const data = await response.json();
-
-
-      console.log(data);
-
-      setShowAiRecommendation(true);
-      setAiRecommendation({
-        title: data.title,
-        releaseYear: data.releaseYear,
-        content: data.content,
-        noMatchFromLLM: data.noMatchFromLLM
+      const finalResponses = {...collectedResponses}
+      finalResponses.peopleResponses.push({
+        userResponses,
+        stringifiedQueryAndResponses
       });
-      setUsingAI(false);
-    } catch (error) {
-      console.error('Error fetching data from API:', error);
-      setUsingAI(false);
-      throw error;
-    }
+    
+     console.log(finalResponses);
+    // e.preventDefault();
+    // setUsingAI(true);
+    // const formData = new FormData(e.target);
+    // const userQueryResponses = Object.fromEntries(formData);
+
+    // const userResponses = Object.values(userQueryResponses).join(', ');
+    // const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
+    //   .map(
+    //     ([key, value], index) =>
+    //       `Question ${index + 1}: ${key}\nAnswer: ${value}`
+    //   )
+    //   .join('\n\n');
+
+    // try {
+    //   const response = await fetch(
+    //     'https://pop-choice-worker.hawitrial.workers.dev/',
+    //     {
+    //       method: 'POST',
+    //       body: JSON.stringify({
+    //         questionsAndAnswersString: stringifiedQueryAndResponses,
+    //         userResponses: userResponses
+    //       })
+    //     }
+    //   );
+    //   const data = await response.json();
+
+    //   console.log(data);
+
+    //   setShowAiRecommendation(true);
+    //   setAiRecommendation({
+    //     title: data.title,
+    //     releaseYear: data.releaseYear,
+    //     content: data.content,
+    //     noMatchFromLLM: data.noMatchFromLLM
+    //   });
+    //   setUsingAI(false);
+    // } catch (error) {
+    //   console.error('Error fetching data from API:', error);
+    //   setUsingAI(false);
+    //   throw error;
+    // }
   };
 
   const handleGoAgain = () => {
@@ -67,6 +95,63 @@ export const App = () => {
     });
   };
 
+  const handleNextPerson = (e) => {
+    
+
+    const formData = new FormData(e.target);
+    const userQueryResponses = Object.fromEntries(formData);
+    
+
+     const userResponses = Object.values(userQueryResponses).join(', ');
+     const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
+      .map(
+        ([key, value], index) =>
+          `Question ${index + 1}: ${key}\nAnswer: ${value}`
+      )
+      .join('\n\n');
+    
+      console.log(userResponses);
+      console.log(stringifiedQueryAndResponses);
+      setCollectedResponses({
+        ...collectedResponses,
+        peopleResponses: [...collectedResponses?.peopleResponses ?? [],{
+          userResponses,
+        stringifiedQueryAndResponses
+      }]
+    });
+    setCurrentPerson(currentPerson + 1);
+  };
+
+  const onHandleStart = (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const initialMovieSetUpPreferences = Object.fromEntries(formData);
+
+    setAllowedNumberOfPeople(
+      initialMovieSetUpPreferences[
+        'how many people are you going to watch the movie with?'
+      ]
+    );
+    const stringifiedQueryAndResponsesForInitialSetUp = Object.entries(
+      initialMovieSetUpPreferences
+    )
+      .map(
+        ([key, value], index) =>
+          `Question ${index + 1}: ${key}\nAnswer: ${value}`
+      )
+      .join('\n\n');
+
+    setCollectedResponses({
+      movieSetUpPreferences: {
+        stringifiedQueryAndResponsesForInitialSetUp,
+        numberOfPeople: initialMovieSetUpPreferences['how many people are you going to watch the movie with?'],
+        time: `${initialMovieSetUpPreferences['how much time do you have?']} movie`
+      }
+    });
+    setShowQuestions(true);
+  };
+
   return (
     <div className=''>
       <div className='mt-[50px]'>
@@ -78,82 +163,40 @@ export const App = () => {
           className='my-0 mx-auto'
         />
         <h1 id='pop-choice-title' className='text-[45px] font-bold text-center'>
-          Pop Choice
+          {showQuestions ? currentPerson : 'Pop Choice'}
         </h1>
       </div>
 
       <div className='mt-2 p-8'>
-        {showAiRecommendation ? (
-          <div className='mx-auto mb-8'>
-            {aiRecommendation.noMatchFromLLM ? (
-              <p className='text-[30px] font-bold text-center'>
-              Sorry, I don't know any movie based on your preferences. Click the button below to try again.
-              </p>
-            ) : (
-              <>
-                <p className='text-[30px] mb-6 font-bold text-center'>
-                  {aiRecommendation.title} ({aiRecommendation.releaseYear})
-                </p>
-                <p className='pb-2 text-base context-question'>
-                  {aiRecommendation.content}
-                </p>
-              </>
-            )}
+        {!showQuestions ? (
+          <form onSubmit={onHandleStart}>
+            <input
+              placeholder='How many people are you going to watch the movie with?'
+              name='how many people are you going to watch the movie with?'
+              className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
+              required
+            />
+            <input
+              placeholder='How much time do you have?'
+              name='how much time do you have?'
+              className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
+              required
+            />
             <button
-              type='button'
-              className='bg-[#51E08A] text-black px-4 py-2 mt-16 rounded-md w-full text-[30px] submit-button'
-              onClick={handleGoAgain}
+              type='submit'
+              className='bg-[#51E08A] text-black px-4 py-2 rounded-md w-full text-[30px] submit-button'
             >
-              Go Again
+              Start
             </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <div className='mx-auto mb-8'>
-              <p className='pb-2 text-base context-question'>
-                What's your favorite movie and why?
-              </p>
-              <textarea
-                placeholder='Enter your answer here'
-                name="What's your favorite movie and why?"
-                className='text-sm context-answer w-full bg-[#3B4877] rounded-md p-2 h-[100px]'
-                required
-              />
-            </div>
-            <div className='mx-auto mb-8'>
-              <p className='pb-2 text-base context-question'>
-                Are you in the mood for something new or a classic?
-              </p>
-              <textarea
-                placeholder='Enter your answer here'
-                name='Are you in the mood for something new or a classic?'
-                className='text-sm context-answer w-full bg-[#3B4877] rounded-md p-2 h-[100px]'
-                required
-              />
-            </div>
-
-            <div className='mx-auto mb-8'>
-              <p className='pb-2 text-base context-question'>
-                Do you wanna have fun or do you want something serious?
-              </p>
-              <textarea
-                placeholder='Enter your answer here'
-                name='Do you wanna have fun or do you want something serious?'
-                className='text-sm context-answer w-full bg-[#3B4877] rounded-md p-2 h-[100px]'
-                required
-              />
-            </div>
-
-            <div className='mx-auto mb-8'>
-              <button
-                type='submit'
-                disabled={usingAI}
-                className='bg-[#51E08A] text-black px-4 py-2 rounded-md w-full text-[30px] submit-button'
-              >
-                {usingAI ? 'Searching...' : "Let's Go"}
-              </button>
-            </div>
           </form>
+        ) : (
+          <Questions
+            handleFinalMovieSelectionSubmit={handleFinalMovieSelectionSubmit}
+            handleNextPerson={handleNextPerson}
+            allowedNumberOfPeople={allowedNumberOfPeople}
+            currentPerson={currentPerson}
+            usingAI={usingAI}
+          />
         )}
       </div>
     </div>
