@@ -27,10 +27,10 @@ npm start
 - Use any framework or library (I used React) ✅
 
 ### Stetch goals
-- Make app for N+ people
-- Multiple choice questions
-- Use text chunking from movies.txt
-- Show a movie poster (use this API, https://developer.themoviedb.org/docs/getting-started)
-- Add "Next Movie" button for next recommendation.
+- Make app for N+ people, (TODO, working on limiting to 10 people max)
+- Multiple choice questions ✅
+- Use text chunking from movies.txt ✅
+- Show a movie poster (use this API, https://developer.themoviedb.org/docs/getting-started) ✅
+- Add "Next Movie" button for next recommendation. ✅
 
 Head over to https://vitejs.dev/ to learn more about configuring vite
