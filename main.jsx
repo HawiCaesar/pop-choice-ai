@@ -66,7 +66,7 @@ export const App = () => {
       );
       const data = await response.json();
 
-      console.log(JSON.parse(data.content).movieRecommendations)
+      console.log(JSON.parse(data.content))
 
       setShowAiRecommendations(true);
       setAiRecommendations(JSON.parse(data.content).movieRecommendations);
