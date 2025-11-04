@@ -26,9 +26,6 @@ export const App = () => {
       )
       .join('\n\n');
 
-    console.log(userResponses);
-    console.log(stringifiedQueryAndResponses);
-
     const finalResponses = { ...collectedResponses };
     finalResponses.peopleResponses.push({
       userResponses,
@@ -49,8 +46,7 @@ export const App = () => {
           }
         }
       );
-      const data = await response.json();
-      console.log('Logged in to themoviedb API', data);
+      await response.json();
     } catch (error) {
       console.error('Error logging in to themoviedb API:', error);
 
@@ -69,6 +65,8 @@ export const App = () => {
         }
       );
       const data = await response.json();
+
+      console.log(JSON.parse(data.content).movieRecommendations)
 
       setShowAiRecommendations(true);
       setAiRecommendations(JSON.parse(data.content).movieRecommendations);
