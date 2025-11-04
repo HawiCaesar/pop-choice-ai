@@ -17,8 +17,8 @@ export const Questions = ({
     e.preventDefault();
 
     if (currentPerson >= allowedNumberOfPeople) {
-        // collect the last person's responses. React state is async, so we need to wait for the state to be updated before submitting the form.
-        handleFinalMovieSelectionSubmit(e); 
+      // collect the last person's responses. React state is async, so we need to wait for the state to be updated before submitting the form.
+      handleFinalMovieSelectionSubmit(e);
     } else {
       handleNextPerson(e);
 
@@ -29,6 +29,16 @@ export const Questions = ({
       setFamousPerson('');
     }
   };
+
+  const buttonText = () => {
+    if (usingAI) {
+      return 'Searching for movies...';
+    } else if (currentPerson >= allowedNumberOfPeople) {
+      return 'Get Movie';
+    } else {
+      return 'Next Person';
+    }
+  }
 
   return (
     <form onSubmit={handleFormSubmit}>
@@ -132,7 +142,7 @@ export const Questions = ({
           className='bg-[#51E08A] text-black px-4 py-2 rounded-md w-full text-[30px] submit-button'
           disabled={usingAI}
         >
-          {currentPerson >= allowedNumberOfPeople ? 'Get Movie' : 'Next Person'}
+          {buttonText()}
         </button>
       </div>
     </form>

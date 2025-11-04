@@ -1,7 +1,15 @@
 import dotenv from 'dotenv';
 import OpenAI from 'openai';
-import { createClient } from "@supabase/supabase-js";
-import structuredMoviesArray from './content.js';
+import { createClient } from '@supabase/supabase-js';
+//import structuredMoviesArray from './content.js';
+import { readFile } from 'fs/promises';
+import { fileURLToPath } from 'url'; // Add this import
+import { dirname, join } from 'path'; // Add this import
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -23,35 +31,57 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_API_KEY
 );
 
-async function main(input) {
-  console.log('Starting embedding process...');
+async function main() {
+  let document;
+  try {
+    // const response = await fetch('movies.txt')
+    // document = await response.text()
+    const filePath = join(__dirname, 'movies.txt');
+    document = await readFile(filePath, 'utf-8');
+
+    
+  } catch (error) {
+    console.error('Error fetching movies.txt:', error);
+    process.exit(1);
+  }
+
+    console.log('Document type:', typeof document);
+    console.log('Document length:', document.length);
+  
+
+  const splitter = new RecursiveCharacterTextSplitter({
+    chunkSize: 250,
+    chunkOverlap: 35
+  });
+  const chunkData = await splitter.splitText(document);
+  console.log('Chunked data:', chunkData);
+
   let data;
   try {
     data = await Promise.all(
-    input.map( async (textChunk) => {
+      chunkData.map(async (textChunk) => {
         const embeddingResponse = await openai.embeddings.create({
-            model: "text-embedding-3-small",
-            input: textChunk.content,
-            encoding_format: "float",
+          model: 'text-embedding-3-small',
+          input: textChunk,
+          encoding_format: 'float'
         });
-        return { 
-          title: textChunk.title,
-          releaseyear: textChunk.releaseYear, // Supabase column name is releaseyear
-          content: textChunk.content,
-          embedding: embeddingResponse.data[0].embedding 
-        }
+        return {
+          content: textChunk,
+          embedding: embeddingResponse.data[0].embedding
+        };
       })
     );
-    console.log('Done with embeddings');
   } catch (error) {
     console.error('Error creating embeddings:', error);
     process.exit(1);
   }
-  
+  // Insert content and embedding into Supabase
   try {
     console.log('Inserting data into Supabase...');
     // Insert content and embedding into Supabase
-    const { error } = await supabase.from('popchoice').insert(data); 
+    const { error } = await supabase
+      .from('popchoice_unstructured')
+      .insert(data);
     if (error) {
       console.error('Error inserting data into Supabase:', error);
       process.exit(1);
@@ -61,9 +91,10 @@ async function main(input) {
     console.error('Error inserting data into Supabase:', error);
     process.exit(1);
   }
+  console.log('Embedding and storing complete!');
 }
 
-main(structuredMoviesArray).catch(error => {
+main().catch((error) => {
   console.error('Error in main:', error);
   process.exit(1);
 });

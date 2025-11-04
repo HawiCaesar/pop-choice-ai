@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import logo from './assets/pop-choice.png';
 import { Questions } from './Questions';
+import { Recommendations } from './Recommendations';
 
 export const App = () => {
   const [usingAI, setUsingAI] = useState(false);
@@ -8,116 +9,107 @@ export const App = () => {
   const [collectedResponses, setCollectedResponses] = useState({});
   const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
   const [currentPerson, setCurrentPerson] = useState(1);
-  const [showAiRecommendation, setShowAiRecommendation] = useState(false);
-  const [aiRecommendation, setAiRecommendation] = useState({
-    title: null,
-    releaseYear: null,
-    content: null,
-    noMatchFromLLM: false
-  });
+  const [showAiRecommendations, setShowAiRecommendations] = useState(false);
+  const [aiRecommendations, setAiRecommendations] = useState([]);
 
   const handleFinalMovieSelectionSubmit = async (e) => {
     setUsingAI(true);
 
     const formData = new FormData(e.target);
     const userQueryResponses = Object.fromEntries(formData);
-    
 
-     const userResponses = Object.values(userQueryResponses).join(', ');
-     const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
+    const userResponses = Object.values(userQueryResponses).join(', ');
+    const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
       .map(
         ([key, value], index) =>
           `Question ${index + 1}: ${key}\nAnswer: ${value}`
       )
       .join('\n\n');
-    
-      console.log(userResponses);
-      console.log(stringifiedQueryAndResponses);
 
-      const finalResponses = {...collectedResponses}
-      finalResponses.peopleResponses.push({
-        userResponses,
-        stringifiedQueryAndResponses
-      });
-    
-     console.log(finalResponses);
-    // e.preventDefault();
-    // setUsingAI(true);
-    // const formData = new FormData(e.target);
-    // const userQueryResponses = Object.fromEntries(formData);
+    console.log(userResponses);
+    console.log(stringifiedQueryAndResponses);
 
-    // const userResponses = Object.values(userQueryResponses).join(', ');
-    // const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
-    //   .map(
-    //     ([key, value], index) =>
-    //       `Question ${index + 1}: ${key}\nAnswer: ${value}`
-    //   )
-    //   .join('\n\n');
+    const finalResponses = { ...collectedResponses };
+    finalResponses.peopleResponses.push({
+      userResponses,
+      stringifiedQueryAndResponses: `Person ${currentPerson}: \n\n ${stringifiedQueryAndResponses}`
+    });
 
-    // try {
-    //   const response = await fetch(
-    //     'https://pop-choice-worker.hawitrial.workers.dev/',
-    //     {
-    //       method: 'POST',
-    //       body: JSON.stringify({
-    //         questionsAndAnswersString: stringifiedQueryAndResponses,
-    //         userResponses: userResponses
-    //       })
-    //     }
-    //   );
-    //   const data = await response.json();
+    console.log(finalResponses);
 
-    //   console.log(data);
+    // loggin in to themoviedb API
+    try {
+      const response = await fetch(
+        `https://api.themoviedb.org/3/authentication`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_THEMOVIEDB_API_KEY}`
+          }
+        }
+      );
+      const data = await response.json();
+      console.log('Logged in to themoviedb API', data);
+    } catch (error) {
+      console.error('Error logging in to themoviedb API:', error);
 
-    //   setShowAiRecommendation(true);
-    //   setAiRecommendation({
-    //     title: data.title,
-    //     releaseYear: data.releaseYear,
-    //     content: data.content,
-    //     noMatchFromLLM: data.noMatchFromLLM
-    //   });
-    //   setUsingAI(false);
-    // } catch (error) {
-    //   console.error('Error fetching data from API:', error);
-    //   setUsingAI(false);
-    //   throw error;
-    // }
+      throw error;
+    }
+
+    try {
+      const response = await fetch(
+        'https://pop-choice-worker.hawitrial.workers.dev/',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            movieSetUpPreferences: collectedResponses.movieSetUpPreferences,
+            peopleResponses: collectedResponses.peopleResponses
+          })
+        }
+      );
+      const data = await response.json();
+
+      setShowAiRecommendations(true);
+      setAiRecommendations(JSON.parse(data.content).movieRecommendations);
+      setUsingAI(false);
+    } catch (error) {
+      console.error('Error fetching data from API:', error);
+      setUsingAI(false);
+      throw error;
+    }
   };
 
   const handleGoAgain = () => {
-    setShowAiRecommendation(false);
+    setShowAiRecommendations(false);
     setUsingAI(false);
-    setAiRecommendation({
-      title: null,
-      releaseYear: null,
-      content: null,
-      noMatchFromLLM: false
-    });
+    setAiRecommendations([]);
+    setCurrentPerson(1);
+    setShowQuestions(false);
   };
 
   const handleNextPerson = (e) => {
-    
-
     const formData = new FormData(e.target);
     const userQueryResponses = Object.fromEntries(formData);
-    
 
-     const userResponses = Object.values(userQueryResponses).join(', ');
-     const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
+    const userResponses = Object.values(userQueryResponses).join(', ');
+    const stringifiedQueryAndResponses = Object.entries(userQueryResponses)
       .map(
         ([key, value], index) =>
           `Question ${index + 1}: ${key}\nAnswer: ${value}`
       )
       .join('\n\n');
+
     
-      console.log(userResponses);
-      console.log(stringifiedQueryAndResponses);
-      setCollectedResponses({
-        ...collectedResponses,
-        peopleResponses: [...collectedResponses?.peopleResponses ?? [],{
+    setCollectedResponses({
+      ...collectedResponses,
+      peopleResponses: [
+        ...(collectedResponses?.peopleResponses ?? []),
+        {
           userResponses,
-        stringifiedQueryAndResponses
-      }]
+          stringifiedQueryAndResponses: `Person ${currentPerson}: \n\n ${stringifiedQueryAndResponses}`
+        }
+      ]
     });
     setCurrentPerson(currentPerson + 1);
   };
@@ -145,8 +137,11 @@ export const App = () => {
     setCollectedResponses({
       movieSetUpPreferences: {
         stringifiedQueryAndResponsesForInitialSetUp,
-        numberOfPeople: initialMovieSetUpPreferences['how many people are you going to watch the movie with?'],
-        time: `${initialMovieSetUpPreferences['how much time do you have?']} movie`
+        numberOfPeople:
+          initialMovieSetUpPreferences[
+            'how many people are you going to watch the movie with?'
+          ],
+        time: `Runtime: ${initialMovieSetUpPreferences['how much time do you have?']} available`
       }
     });
     setShowQuestions(true);
@@ -154,51 +149,65 @@ export const App = () => {
 
   return (
     <div className=''>
-      <div className='mt-[50px]'>
-        <img
-          src={logo}
-          alt='Pop Choice'
-          width='100px'
-          height='100px'
-          className='my-0 mx-auto'
+      {showAiRecommendations ? (
+        <Recommendations
+          movieRecommendations={aiRecommendations}
+          handleGoAgain={handleGoAgain}
         />
-        <h1 id='pop-choice-title' className='text-[45px] font-bold text-center'>
-          {showQuestions ? currentPerson : 'Pop Choice'}
-        </h1>
-      </div>
-
-      <div className='mt-2 p-8'>
-        {!showQuestions ? (
-          <form onSubmit={onHandleStart}>
-            <input
-              placeholder='How many people are you going to watch the movie with?'
-              name='how many people are you going to watch the movie with?'
-              className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
-              required
+      ) : (
+        <>
+          <div className='mt-[50px]'>
+            <img
+              src={logo}
+              alt='Pop Choice'
+              width='100px'
+              height='100px'
+              className='my-0 mx-auto'
             />
-            <input
-              placeholder='How much time do you have?'
-              name='how much time do you have?'
-              className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
-              required
-            />
-            <button
-              type='submit'
-              className='bg-[#51E08A] text-black px-4 py-2 rounded-md w-full text-[30px] submit-button'
+            <h1
+              id='pop-choice-title'
+              className='text-[45px] font-bold text-center'
             >
-              Start
-            </button>
-          </form>
-        ) : (
-          <Questions
-            handleFinalMovieSelectionSubmit={handleFinalMovieSelectionSubmit}
-            handleNextPerson={handleNextPerson}
-            allowedNumberOfPeople={allowedNumberOfPeople}
-            currentPerson={currentPerson}
-            usingAI={usingAI}
-          />
-        )}
-      </div>
+              {showQuestions ? currentPerson : 'Pop Choice'}
+            </h1>
+          </div>
+
+          <div className='mt-2 p-8'>
+            {!showQuestions ? (
+              <form onSubmit={onHandleStart}>
+                <input
+                  placeholder='How many people are you going to watch the movie with?'
+                  name='how many people are you going to watch the movie with?'
+                  className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
+                  required
+                />
+                <input
+                  placeholder='How much time do you have?'
+                  name='how much time do you have?'
+                  className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
+                  required
+                />
+                <button
+                  type='submit'
+                  className='bg-[#51E08A] text-black px-4 py-2 rounded-md w-full text-[30px] submit-button'
+                >
+                  Start
+                </button>
+              </form>
+            ) : (
+              <Questions
+                handleFinalMovieSelectionSubmit={
+                  handleFinalMovieSelectionSubmit
+                }
+                handleNextPerson={handleNextPerson}
+                allowedNumberOfPeople={allowedNumberOfPeople}
+                currentPerson={currentPerson}
+                usingAI={usingAI}
+              />
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
