@@ -8,6 +8,7 @@ export const App = () => {
   const [showQuestions, setShowQuestions] = useState(false);
   const [collectedResponses, setCollectedResponses] = useState({});
   const [allowedNumberOfPeople, setAllowedNumberOfPeople] = useState(1);
+  const [howMuchTimeDoYouHave, setHowMuchTimeDoYouHave] = useState('');
   const [currentPerson, setCurrentPerson] = useState(1);
   const [showAiRecommendations, setShowAiRecommendations] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState([]);
@@ -31,8 +32,6 @@ export const App = () => {
       userResponses,
       stringifiedQueryAndResponses: `Person ${currentPerson}: \n\n ${stringifiedQueryAndResponses}`
     });
-
-    console.log(finalResponses);
 
     // loggin in to themoviedb API
     try {
@@ -59,14 +58,14 @@ export const App = () => {
         {
           method: 'POST',
           body: JSON.stringify({
-            movieSetUpPreferences: collectedResponses.movieSetUpPreferences,
-            peopleResponses: collectedResponses.peopleResponses
+            movieSetUpPreferences: finalResponses.movieSetUpPreferences,
+            peopleResponses: finalResponses.peopleResponses
           })
         }
       );
       const data = await response.json();
 
-      console.log(JSON.parse(data.content))
+      console.log(JSON.parse(data.content));
 
       setShowAiRecommendations(true);
       setAiRecommendations(JSON.parse(data.content).movieRecommendations);
@@ -84,6 +83,8 @@ export const App = () => {
     setAiRecommendations([]);
     setCurrentPerson(1);
     setShowQuestions(false);
+    setAllowedNumberOfPeople(1);
+    setHowMuchTimeDoYouHave('');
   };
 
   const handleNextPerson = (e) => {
@@ -98,7 +99,6 @@ export const App = () => {
       )
       .join('\n\n');
 
-    
     setCollectedResponses({
       ...collectedResponses,
       peopleResponses: [
@@ -112,34 +112,31 @@ export const App = () => {
     setCurrentPerson(currentPerson + 1);
   };
 
+  const onHandleAllowedNumberOfPeople = (e) => {
+    const value = parseInt(e.target.value);
+    setAllowedNumberOfPeople(value);
+  };
+
+  const onHandleHowMuchTimeDoYouHave = (e) => {
+    setHowMuchTimeDoYouHave(e.target.value);
+  };
+
+  const disableStartButton = () => {
+    return (
+      allowedNumberOfPeople === 0 ||
+      Number.isNaN(allowedNumberOfPeople) ||
+      howMuchTimeDoYouHave === '' ||
+      parseInt(allowedNumberOfPeople) > 8
+    );
+  };
+
   const onHandleStart = (e) => {
     e.preventDefault();
 
-    const formData = new FormData(e.target);
-    const initialMovieSetUpPreferences = Object.fromEntries(formData);
-
-    setAllowedNumberOfPeople(
-      initialMovieSetUpPreferences[
-        'how many people are you going to watch the movie with?'
-      ]
-    );
-    const stringifiedQueryAndResponsesForInitialSetUp = Object.entries(
-      initialMovieSetUpPreferences
-    )
-      .map(
-        ([key, value], index) =>
-          `Question ${index + 1}: ${key}\nAnswer: ${value}`
-      )
-      .join('\n\n');
-
     setCollectedResponses({
       movieSetUpPreferences: {
-        stringifiedQueryAndResponsesForInitialSetUp,
-        numberOfPeople:
-          initialMovieSetUpPreferences[
-            'how many people are you going to watch the movie with?'
-          ],
-        time: `Runtime: ${initialMovieSetUpPreferences['how much time do you have?']} available`
+        numberOfPeople: allowedNumberOfPeople,
+        time: `Runtime: ${howMuchTimeDoYouHave} available`
       }
     });
     setShowQuestions(true);
@@ -178,16 +175,35 @@ export const App = () => {
                   name='how many people are you going to watch the movie with?'
                   className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
                   required
+                  value={allowedNumberOfPeople}
+                  onChange={onHandleAllowedNumberOfPeople}
+                  type='number'
+                  max={10}
+                  min={1}
                 />
+                {allowedNumberOfPeople &&
+                parseInt(allowedNumberOfPeople) > 8 ? (
+                  <p className='text-red-500 text-sm text-center mb-4'>
+                    Maximum 8 people allowed
+                  </p>
+                ) : (
+                  ''
+                )}
                 <input
                   placeholder='How much time do you have?'
                   name='how much time do you have?'
                   className='text-sm text-center context-answer w-full bg-[#3B4877] rounded-md p-2 mb-6 h-[60px]'
                   required
+                  value={howMuchTimeDoYouHave}
+                  onChange={onHandleHowMuchTimeDoYouHave}
+                  type='text'
                 />
                 <button
                   type='submit'
-                  className='bg-[#51E08A] text-black px-4 py-2 rounded-md w-full text-[30px] submit-button'
+                  className={`${
+                    disableStartButton() ? 'bg-gray-500' : 'bg-[#51E08A]'
+                  } text-black px-4 py-2 rounded-md w-full text-[30px] submit-button`}
+                  disabled={disableStartButton()}
                 >
                   Start
                 </button>
