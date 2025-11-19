@@ -27,7 +27,7 @@ npm start
 - Use any framework or library (I used React) ✅
 
 ### Stetch goals
-- Make app for N+ people, (TODO, working on limiting to 10 people max)
+- Make app for N+ people,  ✅, 6 movies recommendations based on preferences given by each person.
 - Multiple choice questions ✅
 - Use text chunking from movies.txt ✅
 - Show a movie poster (use this API, https://developer.themoviedb.org/docs/getting-started) ✅
