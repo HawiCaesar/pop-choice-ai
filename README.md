@@ -2,6 +2,7 @@
 A movie recommendation app incorporating text chunking, AI embedding and AI chat like functionality.
 
 Open API AI usage found at the cloudflare worker project here
+
 https://github.com/HawiCaesar/pop-choice-worker-ai
 
 ## Getting Started
