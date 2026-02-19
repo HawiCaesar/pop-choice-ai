@@ -1,5 +1,8 @@
 # Pop Choice
-A movie recommendation app incorporating text chunking, AI embedding and AI chat like functionality
+A movie recommendation app incorporating text chunking, AI embedding and AI chat like functionality.
+
+Open API AI usage found at the cloudflare worker project here
+https://github.com/HawiCaesar/pop-choice-worker-ai
 
 ## Getting Started
 Install the dependencies and run the project
@@ -71,4 +74,3 @@ Tests the core happy path for a single user getting a movie recommendation.
 |---|---|
 | P0: Single User Flow | [Video Link](https://drive.google.com/file/d/1GMoxysSUxsMeGUoMUvIQHj_SUT4QkpOi/view?usp=sharing) |
 
-Head over to https://vitejs.dev/ to learn more about configuring vite
