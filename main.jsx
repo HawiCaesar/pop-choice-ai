@@ -28,10 +28,18 @@ export const App = () => {
       .join('\n\n');
 
     const finalResponses = { ...collectedResponses };
-    finalResponses.peopleResponses.push({
-      userResponses,
-      stringifiedQueryAndResponses: `Person ${currentPerson}: \n\n ${stringifiedQueryAndResponses}`
-    });
+    
+    if (finalResponses.peopleResponses) {
+      finalResponses.peopleResponses.push({
+        userResponses,
+        stringifiedQueryAndResponses: `Person ${currentPerson}: \n\n ${stringifiedQueryAndResponses}`
+      });
+    } else {
+      finalResponses.peopleResponses = [{
+        userResponses,
+        stringifiedQueryAndResponses: `Person ${currentPerson}: \n\n ${stringifiedQueryAndResponses}`
+      }];
+    }
 
     // loggin in to themoviedb API
     try {
