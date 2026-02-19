@@ -33,4 +33,42 @@ npm start
 - Show a movie poster (use this API, https://developer.themoviedb.org/docs/getting-started) ✅
 - Add "Next Movie" button for next recommendation. ✅
 
+---
+
+## End-to-End Tests
+
+E2E tests are written with [Vitest](https://vitest.dev/) and [Stagehand](https://github.com/browserbasehq/stagehand), running against a real browser session via [Browserbase](https://browserbase.com/).
+
+### Running the tests
+
+```bash
+npm run test:e2e
+```
+
+Make sure `.env.test` is configured with your `BROWSERBASE_API_KEY`, `BROWSERBASE_PROJECT_ID`, `ANTHROPIC_API_KEY`, and `TEST_APP_URL` before running.
+
+### P0: Single User Flow
+
+> `tests/e2e/critical/single-user-flow.test.js`
+
+Tests the core happy path for a single user getting a movie recommendation.
+
+| Scenario | Description | Status |
+|---|---|---|
+| Complete recommendation flow | Fills group size (1 person) and time available (2 hours), answers preference questions (favorite movie, new/classic, mood, famous person), submits, and asserts a valid movie recommendation is returned within 120s | ✅ Passing |
+
+**Test inputs used:**
+- Favorite movie: *The Shawshank Redemption*
+- Preference: Classic
+- Mood: Inspiring
+- Famous person: Morgan Freeman
+
+### Test Video Recordings
+
+> Recorded via Browserbase — full browser sessions of each test run.
+
+| Test | Video |
+|---|---|
+| P0: Single User Flow | [Video Link](https://drive.google.com/file/d/1GMoxysSUxsMeGUoMUvIQHj_SUT4QkpOi/view?usp=sharing) |
+
 Head over to https://vitejs.dev/ to learn more about configuring vite

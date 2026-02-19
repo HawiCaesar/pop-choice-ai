@@ -7,19 +7,32 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "embeddings": "node embeddings.js"
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:e2e": "vitest run tests/e2e",
+    "test:p0": "vitest run tests/e2e/critical",
+    "test:p1": "vitest run tests/e2e/high",
+    "test:p2": "vitest run tests/e2e/medium"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.0",
-    "dotenv": "^17.2.3",
+    "dotenv": "^16.4.5",
     "openai": "4.12.3",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "vite": "latest"
+    "vite": "latest",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@browserbasehq/stagehand": "^3.0.8",
+    "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
-    "tailwindcss": "^3.4.17"
+    "tailwindcss": "^3.4.17",
+    "vitest": "^4.0.18"
+  },
+  "overrides": {
+    "langsmith": "^0.4.6",
+    "minimatch": "^10.2.1"
   }
 }

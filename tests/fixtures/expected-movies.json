@@ -1,0 +1,18 @@
+{
+  "note": "This file contains example movie structures for reference. Actual recommendations will come from the API.",
+  "exampleMovie": {
+    "title": "Example Movie Title",
+    "releaseYear": 2020,
+    "content": "This is an example movie description that would come from the recommendation API."
+  },
+  "expectedFields": {
+    "title": "string - Movie title",
+    "releaseYear": "number - Year the movie was released",
+    "content": "string - Movie description/reason for recommendation"
+  },
+  "validationRules": {
+    "title": "Must be a non-empty string",
+    "releaseYear": "Must be between 1900 and current year + 1",
+    "content": "Must be a non-empty string"
+  }
+}
