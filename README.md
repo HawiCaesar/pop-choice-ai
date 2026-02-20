@@ -41,6 +41,11 @@ npm start
 
 ## End-to-End Tests
 
+### AI Testing Workflow
+
+E2E tests were structured using plan files to guide AI-generated test cases.  
+This ensured deterministic coverage and reduced flaky test generation.
+
 E2E tests are written with [Vitest](https://vitest.dev/) and [Stagehand](https://github.com/browserbasehq/stagehand), running against a real browser session via [Browserbase](https://browserbase.com/).
 
 ### Running the tests
