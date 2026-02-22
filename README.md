@@ -72,6 +72,22 @@ Tests the core happy path for a single user getting a movie recommendation.
 - Mood: Inspiring
 - Famous person: Morgan Freeman
 
+### P0: Multiple Choice Questions
+
+> `tests/e2e/critical/multiple-choice.test.js`
+
+Tests that multiple choice question interactions (New/Classic toggle, multi-mood selection) work correctly and selections are visually reflected before submission.
+
+| Scenario | Description | Status |
+|---|---|---|
+| Select and change multiple choice options | Selects "New" then switches to "Classic", verifies only Classic is highlighted; selects "Fun" and "Inspiring" moods, verifies both are highlighted; completes and submits the form and asserts a valid movie recommendation is returned | ✅ Passing |
+
+**Test inputs used:**
+- Favorite movie: *The Shawshank Redemption*
+- Preference: Classic (toggled from New)
+- Moods: Fun, Inspiring
+- Famous person: Morgan Freeman
+
 ### Test Video Recordings
 
 > Recorded via Browserbase — full browser sessions of each test run.
@@ -79,4 +95,5 @@ Tests the core happy path for a single user getting a movie recommendation.
 | Test | Video |
 |---|---|
 | P0: Single User Flow | [Video Link](https://drive.google.com/file/d/1GMoxysSUxsMeGUoMUvIQHj_SUT4QkpOi/view?usp=sharing) |
+| P0: Multiple Choice Questions | [Video Link](https://drive.google.com/file/d/1p5za9fZjuCLGfYN7KwtS9raBVdOEet52/view?usp=drive_link) |
 

@@ -24,9 +24,7 @@ describe('P0: Multiple Choice Questions - Interaction and Selection', () => {
 
     // Test New/Classic button selection
     // First select "New"
-    await testHelper.stagehand.act({
-      action: 'Click the "New" button for the new or classic question'
-    });
+    await testHelper.stagehand.act('Click the "New" button for the new or classic question');
     
     // Verify selection is highlighted (check for ring class)
     const newButtonSelected = await testHelper.page.evaluate(() => {
@@ -37,9 +35,7 @@ describe('P0: Multiple Choice Questions - Interaction and Selection', () => {
     expect(newButtonSelected).toBe(true);
 
     // Change selection to "Classic"
-    await testHelper.stagehand.act({
-      action: 'Click the "Classic" button for the new or classic question'
-    });
+    await testHelper.stagehand.act('Click the "Classic" button for the new or classic question');
 
     // Verify Classic is now selected and New is not
     const classicButtonSelected = await testHelper.page.evaluate(() => {
@@ -55,12 +51,8 @@ describe('P0: Multiple Choice Questions - Interaction and Selection', () => {
     expect(classicButtonSelected.new).toBe(false);
 
     // Test mood button selection (can select multiple)
-    await testHelper.stagehand.act({
-      action: 'Click the "Fun" mood button'
-    });
-    await testHelper.stagehand.act({
-      action: 'Click the "Inspiring" mood button'
-    });
+    await testHelper.stagehand.act('Click the "Fun" mood button');
+    await testHelper.stagehand.act('Click the "Inspiring" mood button');
 
     // Verify both moods are selected
     const moodsSelected = await testHelper.page.evaluate(() => {
@@ -76,18 +68,13 @@ describe('P0: Multiple Choice Questions - Interaction and Selection', () => {
     expect(moodsSelected.inspiring).toBe(true);
 
     // Complete the form
-    await testHelper.stagehand.act({
-      action: `Enter "${singleUserPreferences.favoriteMovie}" in the favorite movie question`
-    });
-    await testHelper.stagehand.act({
-      action: `Enter "${singleUserPreferences.famousPerson}" in the famous person question`
-    });
+    await testHelper.stagehand.act(`Enter "${singleUserPreferences.favoriteMovie}" in the favorite movie question`);
+    await testHelper.stagehand.act(`Enter "${singleUserPreferences.famousPerson}" in the famous person question`);
 
     // Submit
     await testHelper.submitQuestions();
 
     // Verify recommendation appears
-    await testHelper.page.waitForSelector('h1', { timeout: 15000 });
     const movie = await testHelper.extractMovieRecommendation();
     expect(movie.title).toBeTruthy();
   });
